@@ -1,6 +1,7 @@
 sudo: false
 
 language: go
+go_import_path: github.com/hashicorp/vault-ssh-helper
 
 go:
   - 1.11

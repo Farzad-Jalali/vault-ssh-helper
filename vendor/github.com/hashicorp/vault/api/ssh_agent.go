@@ -63,6 +63,7 @@ type SSHHelperConfig struct {
 	AllowedRoles    string `hcl:"allowed_roles"`
 	TLSSkipVerify   bool   `hcl:"tls_skip_verify"`
 	TLSServerName   string `hcl:"tls_server_name"`
+	ConsulDNSServer string `hcl:"consul_dns_server"`
 }
 
 // SetTLSParameters sets the TLS parameters for this SSH agent.
@@ -114,6 +115,8 @@ func (c *SSHHelperConfig) NewClient() (*Client, error) {
 		c.SetTLSParameters(clientConfig, certPool)
 	}
 
+	clientConfig.ConsulDNSServer = c.ConsulDNSServer
+
 	// Creating the client object for the given configuration
 	client, err := NewClient(clientConfig)
 	if err != nil {
@@ -155,6 +158,7 @@ func ParseSSHHelperConfig(contents string) (*SSHHelperConfig, error) {
 		"ca_cert",
 		"ca_path",
 		"allowed_cidr_list",
+		"consul_dns_server",
 		"allowed_roles",
 		"tls_skip_verify",
 		"tls_server_name",

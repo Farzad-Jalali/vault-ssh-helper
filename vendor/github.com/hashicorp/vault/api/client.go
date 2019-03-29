@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -60,6 +61,8 @@ type Config struct {
 
 	// Timeout is for setting custom timeout parameter in the HttpClient
 	Timeout time.Duration
+
+	ConsulDNSServer string
 }
 
 // TLSConfig contains the parameters needed to configure TLS on the HTTP client
@@ -245,6 +248,13 @@ type Client struct {
 	wrappingLookupFunc WrappingLookupFunc
 }
 
+func createConsulDialer(address string) func(context.Context, string, string) (net.Conn, error) {
+	return func(ctx context.Context, network, address string) (net.Conn, error) {
+		d := net.Dialer{}
+		return d.DialContext(ctx, "tcp", fmt.Sprintf("%s:8600", address))
+	}
+}
+
 // NewClient returns a new client for the given configuration.
 //
 // If the environment variable `VAULT_TOKEN` is present, the token will be
@@ -268,6 +278,18 @@ func NewClient(c *Config) (*Client, error) {
 	}
 
 	tp := c.HttpClient.Transport.(*http.Transport)
+
+	if c.ConsulDNSServer != "" {
+		consulResolver := net.Resolver{
+			PreferGo: true,
+			Dial:     createConsulDialer(c.ConsulDNSServer),
+		}
+		consulDialer := net.Dialer{
+			Resolver: &consulResolver,
+		}
+		tp.DialContext = consulDialer.DialContext
+	}
+
 	if err := http2.ConfigureTransport(tp); err != nil {
 		return nil, err
 	}
