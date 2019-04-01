@@ -248,10 +248,10 @@ type Client struct {
 	wrappingLookupFunc WrappingLookupFunc
 }
 
-func createConsulDialer(address string) func(context.Context, string, string) (net.Conn, error) {
+func createConsulDialer(consulAddress string) func(context.Context, string, string) (net.Conn, error) {
 	return func(ctx context.Context, network, address string) (net.Conn, error) {
 		d := net.Dialer{}
-		return d.DialContext(ctx, "tcp", fmt.Sprintf("%s:8600", address))
+		return d.DialContext(ctx, "tcp", fmt.Sprintf("%s:8600", consulAddress))
 	}
 }
 
